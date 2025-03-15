@@ -4,10 +4,11 @@ if (!console.warning) {
 }
 
 const express = require('express');
+const session = require('express-session');
 const puppeteer = require('puppeteer-core');
 const bodyParser = require('body-parser');
 const path = require('path');
-const { marked } = require('marked');
+const marked = require('marked');
 const htmlToDocx = require('html-to-docx');
 const fs = require('fs');
 const { promisify } = require('util');
@@ -42,6 +43,14 @@ const findChromePath = () => {
 
 const app = express();
 const port = 3000;
+
+// 配置session
+app.use(session({
+    secret: 'md-to-word-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 30 * 60 * 1000 } // 30分钟
+}));
 
 // 浏览器实例
 let browserInstance = null;
@@ -86,7 +95,7 @@ if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir);
 }
 
-// 前端发送 POST 请求到 /convert，处理 Markdown 转图片和Word逻辑
+// 前端发送 POST 请求到 /convert，处理 Markdown 转图片和HTML逻辑
 app.post('/convert', async (req, res) => {
     const markdownContent = req.body.markdown;
     
@@ -113,7 +122,7 @@ app.post('/convert', async (req, res) => {
         page.setDefaultTimeout(30000);
         
         // 使用 marked 将 Markdown 转换为 HTML
-        const htmlContent = marked(markdownContent);
+        const htmlContent = marked.parse(markdownContent);
         
         // 将转换后的 HTML 内容加载到页面中
         await page.setContent(`
@@ -224,23 +233,26 @@ app.post('/convert', async (req, res) => {
         // 创建唯一的文件名（基于时间戳）
         const timestamp = Date.now();
         const docxFilename = `output_${timestamp}.docx`;
-        const docxPath = path.join(outputDir, docxFilename);
         
-        // 将 HTML 内容转换为 Word 文档
-        const docxBuffer = await htmlToDocx(htmlContent, null, {
-            table: { row: { cantSplit: true } },
-            footer: true,
-            pageNumber: true,
-        });
+        // 存储HTML内容用于后续生成Word文档
+        const convertData = {
+            htmlContent: htmlContent,
+            timestamp: timestamp,
+            docxFilename: docxFilename
+        };
         
-        // 保存 Word 文件到本地
-        await writeFileAsync(docxPath, docxBuffer);
+        // 将转换数据存储到session中
+        if (!req.session) {
+            req.session = {};
+        }
+        req.session.convertData = convertData;
         
-        // 发送 HTML、图片和 Word 文档下载链接给前端
+        // 发送 HTML 和图片给前端，但不立即生成Word文档
         res.json({ 
             html: htmlContent, 
             image: imageBuffer.toString('base64'), 
-            wordUrl: `/download/${docxFilename}`
+            wordUrl: `/download/${docxFilename}`,
+            timestamp: timestamp
         });
         
     } catch (error) {
@@ -258,16 +270,44 @@ app.post('/convert', async (req, res) => {
 });
 
 // 提供下载 Word 文档的路由
-app.get('/download/:filename', (req, res) => {
+app.get('/download/:filename', async (req, res) => {
     const filename = req.params.filename;
     const docxPath = path.join(outputDir, filename);
     
-    // 检查文件是否存在
-    if (!fs.existsSync(docxPath)) {
-        return res.status(404).send('文件不存在');
+    // 检查文件是否存在，如果存在直接下载
+    if (fs.existsSync(docxPath)) {
+        return res.download(docxPath);
     }
     
-    res.download(docxPath);
+    // 文件不存在，检查是否有待处理的转换数据
+    if (!req.session || !req.session.convertData) {
+        return res.status(404).send('文件不存在或已过期，请重新转换');
+    }
+    
+    try {
+        const { htmlContent, docxFilename } = req.session.convertData;
+        
+        // 如果请求的文件名与存储的文件名不匹配，返回错误
+        if (filename !== docxFilename) {
+            return res.status(404).send('文件不存在或已过期，请重新转换');
+        }
+        
+        // 将 HTML 内容转换为 Word 文档
+        const docxBuffer = await htmlToDocx(htmlContent, null, {
+            table: { row: { cantSplit: true } },
+            footer: true,
+            pageNumber: true,
+        });
+        
+        // 保存 Word 文件到本地
+        await writeFileAsync(docxPath, docxBuffer);
+        
+        // 下载文件
+        res.download(docxPath);
+    } catch (error) {
+        console.error('生成Word文档失败:', error);
+        res.status(500).send('生成文档失败，请重试');
+    }
 });
 
 // 清理超过30分钟的临时文件

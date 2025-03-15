@@ -134,12 +134,12 @@
         }
         
         .input-panel {
-            flex: 0.9;
+            flex: 1.1;
             min-width: 0;
         }
         
         .output-panel {
-            flex: 1.1;
+            flex: 0.9;
             min-width: 0;
         }
         
@@ -372,6 +372,7 @@
             display: flex;
             justify-content: center;
             margin: 0.5rem 0 1.5rem;
+            gap: 0.75rem;
         }
         
         .download-link {
@@ -402,6 +403,33 @@
         .download-link .icon {
             width: 18px;
             height: 18px;
+        }
+        
+        .download-image-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-sm);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .download-image-btn:hover {
+            background-color: var(--primary-dark);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+        
+        .download-image-btn:active {
+            transform: translateY(0);
         }
         
         /* 加载动画 */
@@ -716,6 +744,14 @@
                                 <div class="image-output">
                                     <img id="outputImage" src="" alt="转换后的图片">
                                 </div>
+                                <div class="download-section" style="display: none;" id="downloadImageSection">
+                                    <button id="downloadImageBtn" class="download-image-btn" onclick="downloadImage()">
+                                        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 15V3M12 15L8 11M12 15L16 11M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                        </svg>
+                                        <span>下载图片</span>
+                                    </button>
+                                </div>
                             </div>
                             
                             <div class="download-section" style="display: none;" id="downloadSection">
@@ -901,11 +937,16 @@ function hello() {
                 const imageUrl = `data:image/png;base64,${result.image}`;
                 const outputImage = document.getElementById('outputImage');
                 outputImage.src = imageUrl;
+                outputImage.dataset.imageData = result.image;
                 
-                // 显示下载Word文档的链接
+                // 显示下载按钮
+                document.getElementById('downloadSection').style.display = 'flex';
+                document.getElementById('downloadImageSection').style.display = 'flex';
+                
+                // 设置Word下载链接
                 const downloadLink = document.getElementById('downloadLink');
                 downloadLink.href = result.wordUrl;
-                document.getElementById('downloadSection').style.display = 'flex';
+                downloadLink.download = `markdown_${result.timestamp}.docx`;
                 
                 // 显示输出区域
                 document.getElementById('outputSection').classList.add('visible');
@@ -926,6 +967,23 @@ function hello() {
                 convertBtn.disabled = false;
                 convertSpinner.style.display = 'none';
             }
+        }
+        
+        // 下载图片函数
+        function downloadImage() {
+            const outputImage = document.getElementById('outputImage');
+            if (!outputImage.src || outputImage.src === 'data:,') {
+                showAlert('没有可下载的图片', 'warning');
+                return;
+            }
+            
+            // 创建一个临时链接用于下载
+            const link = document.createElement('a');
+            link.href = outputImage.src;
+            link.download = `markdown_image_${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
         
         // 按Enter键提交
