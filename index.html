@@ -1,99 +1,466 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Markdown转换成图片和HTML</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD To Any - Markdown转换工具</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        :root {
+            --primary-color: #4a6bff;
+            --hover-color: #3a5be0;
+            --bg-color: #f8f9fa;
+            --border-color: #e1e4e8;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+        }
+        
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            height: 100vh;
         }
-        .container {
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            width: 80%;
         }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-section {
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-section label {
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
         textarea {
             width: 100%;
             height: 200px;
-            margin-bottom: 10px;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
         }
-        .output-container {
+        
+        .button-group {
             display: flex;
-            width: 100%;
-            height: 60%;
-            margin-top: 20px;
+            margin: 1rem 0;
+            gap: 0.5rem;
         }
-        .output {
+        
+        button {
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: var(--hover-color);
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .output-section {
+            display: flex;
+            flex-direction: column;
             flex: 1;
-            border: 1px solid #ccc;
-            padding: 10px;
+        }
+        
+        .output-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-right: 0.5rem;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-color: var(--border-color);
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .tab-content {
+            display: none;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            padding: 1rem;
+            border-radius: 0 0 4px 4px;
+            flex: 1;
             overflow: auto;
-            box-sizing: border-box;
         }
-        #htmlOutput {
-            margin-right: 10px;
-        }
-        #outputImage {
+        
+        .tab-content.active {
             display: block;
-            max-width: 100%;
-            max-height: 100%;
+            min-height: 300px;
         }
-        #downloadLink {
-            margin: 20px 0;
+        
+        .html-output {
+            width: 100%;
+            overflow: auto;
+        }
+        
+        .image-output {
+            text-align: center;
+        }
+        
+        #outputImage {
+            max-width: 100%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .download-section {
+            margin: 1rem 0;
+        }
+        
+        .download-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: var(--success-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        
+        .download-link:hover {
+            background-color: #218838;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+        }
+        
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .alert-warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+        
+        footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>Markdown转换成图片和HTML</h1>
-    <textarea id="markdownInput" placeholder="在这里输入Markdown内容"></textarea><br>
-    <button onclick="convertToImage()">转换成图片和HTML</button><br>
-    <a id="downloadLink" href="" download="output.docx" style="display:none;">下载Word文档</a>
-    <div class="output-container">
-        <div id="htmlOutput" class="output"></div>
-        <div id="imageOutput" class="output">
-            <img id="outputImage" src="" alt="转换后的图片">
+    <header>
+        <h1>MD To Any - Markdown转换工具</h1>
+        <p>轻松将Markdown转换为Word、图片等格式</p>
+    </header>
+    
+    <div class="container">
+        <div class="input-section">
+            <label for="markdownInput">输入Markdown内容:</label>
+            <textarea id="markdownInput" placeholder="在这里输入Markdown内容..."></textarea>
+            <div class="button-group">
+                <button id="convertBtn" onclick="convertMarkdown()">
+                    <span id="convertSpinner" class="spinner" style="display: none;"></span>
+                    转换
+                </button>
+                <button onclick="loadSampleContent()">加载示例内容</button>
+                <button onclick="clearContent()">清空</button>
+            </div>
+            <div id="alertBox" style="display: none;" class="alert"></div>
+        </div>
+        
+        <div id="outputSection" class="output-section" style="display: none;">
+            <div class="output-tabs">
+                <div class="tab active" onclick="switchTab('htmlTab')">HTML预览</div>
+                <div class="tab" onclick="switchTab('imageTab')">图片预览</div>
+            </div>
+            
+            <div id="htmlTab" class="tab-content active">
+                <div id="htmlOutput" class="html-output"></div>
+            </div>
+            
+            <div id="imageTab" class="tab-content">
+                <div class="image-output">
+                    <img id="outputImage" src="" alt="转换后的图片">
+                </div>
+            </div>
+            
+            <div class="download-section" style="display: none;" id="downloadSection">
+                <a id="downloadLink" href="" download="output.docx" class="download-link">
+                    <i class="fas fa-download"></i> 下载Word文档
+                </a>
+            </div>
         </div>
     </div>
-</div>
-<script>
-    async function convertToImage() {
-        const markdownContent = document.getElementById('markdownInput').value;
+    
+    <footer>
+        &copy; 2023 MD To Any - Markdown转换工具
+    </footer>
+    
+    <script>
+        // 示例Markdown内容
+        const sampleContent = `# Markdown示例
 
-        // 向后端发送请求
-        const response = await fetch('/convert', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ markdown: markdownContent })
+## 1. 标题示例
+
+# 一级标题
+## 二级标题
+### 三级标题
+
+## 2. 文本格式
+
+**粗体文本** 和 *斜体文本*
+
+~~删除线文本~~
+
+> 引用文本，这是一个引用。
+
+## 3. 列表
+
+无序列表:
+- 项目1
+- 项目2
+- 项目3
+
+有序列表:
+1. 第一项
+2. 第二项
+3. 第三项
+
+## 4. 代码
+
+行内代码: \`const x = 10;\`
+
+代码块:
+\`\`\`javascript
+function hello() {
+  console.log("Hello, world!");
+}
+\`\`\`
+
+## 5. 表格
+
+| 姓名 | 年龄 | 城市 |
+|------|-----|------|
+| 张三 | 25  | 北京 |
+| 李四 | 30  | 上海 |
+| 王五 | 28  | 广州 |
+
+## 6. 链接和图片
+
+[Markdown指南](https://www.markdownguide.org/)
+
+![示例图片](https://via.placeholder.com/150)
+`;
+
+        // 加载示例内容
+        function loadSampleContent() {
+            document.getElementById('markdownInput').value = sampleContent;
+        }
+        
+        // 清空内容
+        function clearContent() {
+            document.getElementById('markdownInput').value = '';
+            document.getElementById('outputSection').style.display = 'none';
+            document.getElementById('alertBox').style.display = 'none';
+        }
+        
+        // 切换标签页
+        function switchTab(tabId) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 取消所有标签的活动状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 激活点击的标签和内容
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab:nth-child(${tabId === 'htmlTab' ? 1 : 2})`).classList.add('active');
+        }
+        
+        // 显示提示信息
+        function showAlert(message, type = 'danger') {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type}`;
+            alertBox.style.display = 'block';
+            
+            // 5秒后自动隐藏
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+        
+        // 转换Markdown
+        async function convertMarkdown() {
+            const markdownContent = document.getElementById('markdownInput').value.trim();
+            
+            if (!markdownContent) {
+                showAlert('请先输入Markdown内容', 'warning');
+                return;
+            }
+            
+            // 显示加载状态
+            const convertBtn = document.getElementById('convertBtn');
+            const convertSpinner = document.getElementById('convertSpinner');
+            convertBtn.disabled = true;
+            convertSpinner.style.display = 'inline-block';
+            document.getElementById('alertBox').style.display = 'none';
+            
+            try {
+                // 向后端发送请求
+                const response = await fetch('/convert', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ markdown: markdownContent })
+                });
+                
+                // 检查请求是否成功
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || '转换失败，请重试');
+                }
+                
+                const result = await response.json();
+                
+                // 显示转换后的HTML
+                document.getElementById('htmlOutput').innerHTML = result.html;
+                
+                // 显示生成的图片
+                const imageUrl = `data:image/png;base64,${result.image}`;
+                const outputImage = document.getElementById('outputImage');
+                outputImage.src = imageUrl;
+                
+                // 显示下载Word文档的链接
+                const downloadLink = document.getElementById('downloadLink');
+                downloadLink.href = result.wordUrl;
+                document.getElementById('downloadSection').style.display = 'block';
+                
+                // 显示输出区域
+                document.getElementById('outputSection').style.display = 'flex';
+                
+                // 显示成功消息
+                showAlert('转换成功！', 'success');
+                
+                // 滚动到输出区域
+                document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                console.error('转换错误:', error);
+                showAlert(`转换失败: ${error.message || '未知错误'}`, 'danger');
+            } finally {
+                // 恢复按钮状态
+                convertBtn.disabled = false;
+                convertSpinner.style.display = 'none';
+            }
+        }
+        
+        // 按Enter键提交
+        document.getElementById('markdownInput').addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.key === 'Enter') {
+                convertMarkdown();
+            }
         });
-
-        const result = await response.json();
-
-        // 显示转换后的HTML
-        document.getElementById('htmlOutput').innerHTML = result.html;
-
-        // 显示生成的图片
-        const imageUrl = `data:image/png;base64,${result.image}`;
-        const outputImage = document.getElementById('outputImage');
-        outputImage.src = imageUrl;
-
-        // 释放URL资源
-        outputImage.onload = () => URL.revokeObjectURL(imageUrl);
-
-        // 显示下载Word文档的链接
-        const downloadLink = document.getElementById('downloadLink');
-        downloadLink.href = result.wordUrl;
-        downloadLink.style.display = 'block';
-    }
-</script>
+        
+        // 页面加载完成后显示提示
+        window.onload = function() {
+            showAlert('欢迎使用MD To Any！按下Ctrl+Enter快速转换', 'success');
+        };
+    </script>
 </body>
 </html>
