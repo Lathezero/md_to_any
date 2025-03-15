@@ -6,13 +6,18 @@
     <title>MD To Any - Markdown转换工具</title>
     <style>
         :root {
-            --primary-color: #4a6bff;
-            --hover-color: #3a5be0;
-            --bg-color: #f8f9fa;
-            --border-color: #e1e4e8;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
+            /* Mac风格配色 */
+            --primary-color: #007aff;
+            --primary-dark: #0062cc;
+            --secondary-color: #8e8e93;
+            --bg-color: #f5f5f7;
+            --panel-bg: #ffffff;
+            --border-color: #d2d2d7;
+            --success-color: #34c759;
+            --danger-color: #ff3b30;
+            --warning-color: #ffcc00;
+            --text-color: #1d1d1f;
+            --text-secondary: #86868b;
         }
         
         * {
@@ -22,32 +27,72 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: var(--text-color);
             background-color: var(--bg-color);
             margin: 0;
             padding: 0;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
         header {
-            background-color: var(--primary-color);
-            color: white;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
             padding: 1rem;
             text-align: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        header h1 {
+            font-weight: 500;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 1rem;
+            padding: 1.5rem;
             flex: 1;
             display: flex;
             flex-direction: column;
+        }
+        
+        .panel {
+            background-color: var(--panel-bg);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        
+        .panel-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .panel-content {
+            padding: 1rem;
         }
         
         .input-section {
@@ -58,44 +103,72 @@
         
         .input-section label {
             margin-bottom: 0.5rem;
-            font-weight: bold;
+            font-weight: 500;
+            color: var(--text-color);
+            font-size: 0.9rem;
         }
         
         textarea {
             width: 100%;
             height: 200px;
-            padding: 0.5rem;
+            padding: 0.75rem;
             border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            border-radius: 6px;
+            font-family: 'SF Mono', Consolas, Monaco, 'Andale Mono', monospace;
             font-size: 0.9rem;
             resize: vertical;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
         }
         
         .button-group {
             display: flex;
             margin: 1rem 0;
-            gap: 0.5rem;
+            gap: 0.8rem;
         }
         
         button {
-            padding: 0.5rem 1rem;
+            padding: 0.6rem 1.2rem;
             background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.2s;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         button:hover {
-            background-color: var(--hover-color);
+            background-color: var(--primary-dark);
+        }
+        
+        button:active {
+            transform: scale(0.98);
         }
         
         button:disabled {
-            background-color: #ccc;
+            background-color: var(--secondary-color);
             cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        button.secondary {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+        
+        button.secondary:hover {
+            background-color: rgba(0, 122, 255, 0.1);
         }
         
         .output-section {
@@ -106,30 +179,39 @@
         
         .output-tabs {
             display: flex;
-            border-bottom: 1px solid var(--border-color);
+            padding: 0.5rem 1rem 0;
+            background-color: #f5f5f7;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
         }
         
         .tab {
-            padding: 0.5rem 1rem;
+            padding: 0.7rem 1.2rem;
             cursor: pointer;
-            border: 1px solid transparent;
-            border-bottom: none;
-            margin-right: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            transition: all 0.2s;
+            margin-right: 0.25rem;
         }
         
         .tab.active {
             background-color: white;
-            border-color: var(--border-color);
-            border-radius: 4px 4px 0 0;
+            color: var(--primary-color);
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: rgba(0, 0, 0, 0.05);
         }
         
         .tab-content {
             display: none;
             background-color: white;
-            border: 1px solid var(--border-color);
-            border-top: none;
-            padding: 1rem;
-            border-radius: 0 0 4px 4px;
+            padding: 1.5rem;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
             flex: 1;
             overflow: auto;
         }
@@ -146,30 +228,40 @@
         
         .image-output {
             text-align: center;
+            padding: 1rem;
         }
         
         #outputImage {
             max-width: 100%;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
         
         .download-section {
-            margin: 1rem 0;
+            margin: 1.5rem 0;
+            text-align: center;
         }
         
         .download-link {
-            display: inline-block;
-            padding: 0.5rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            padding: 0.7rem 1.5rem;
             background-color: var(--success-color);
             color: white;
             text-decoration: none;
-            border-radius: 4px;
-            font-weight: bold;
-            transition: background-color 0.2s;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         
         .download-link:hover {
-            background-color: #218838;
+            background-color: #2da446;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        }
+        
+        .download-link:active {
+            transform: scale(0.98);
         }
         
         .spinner {
@@ -188,96 +280,127 @@
         }
         
         .alert {
-            padding: 0.75rem 1.25rem;
+            padding: 0.9rem 1.2rem;
             margin-bottom: 1rem;
-            border: 1px solid transparent;
-            border-radius: 0.25rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            line-height: 1.4;
+        }
+        
+        .alert::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
         }
         
         .alert-danger {
-            color: #721c24;
-            background-color: #f8d7da;
-            border-color: #f5c6cb;
+            color: #9f2c23;
+            background-color: #ffe5e3;
+        }
+        
+        .alert-danger::before {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='none' d='M0 0h24v24H0z'/%3E%3Cpath d='M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-1-5h2v2h-2v-2zm0-8h2v6h-2V7z' fill='%23ff3b30'/%3E%3C/svg%3E");
         }
         
         .alert-success {
-            color: #155724;
-            background-color: #d4edda;
-            border-color: #c3e6cb;
+            color: #1f7a37;
+            background-color: #e2f8e8;
+        }
+        
+        .alert-success::before {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='none' d='M0 0h24v24H0z'/%3E%3Cpath d='M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-.997-6l7.07-7.071-1.414-1.414-5.656 5.657-2.829-2.829-1.414 1.414L11.003 16z' fill='%2334c759'/%3E%3C/svg%3E");
         }
         
         .alert-warning {
-            color: #856404;
-            background-color: #fff3cd;
-            border-color: #ffeeba;
+            color: #996600;
+            background-color: #fff8e6;
+        }
+        
+        .alert-warning::before {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='none' d='M0 0h24v24H0z'/%3E%3Cpath d='M12.866 3l9.526 16.5a1 1 0 0 1-.866 1.5H2.474a1 1 0 0 1-.866-1.5L11.134 3a1 1 0 0 1 1.732 0zM11 16v2h2v-2h-2zm0-7v5h2V9h-2z' fill='%23ffcc00'/%3E%3C/svg%3E");
         }
         
         footer {
-            background-color: #343a40;
-            color: white;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
             text-align: center;
             padding: 1rem;
-            margin-top: 2rem;
+            font-size: 0.85rem;
         }
 
         /* 响应式设计 */
         @media (max-width: 768px) {
             .container {
-                padding: 0.5rem;
+                padding: 1rem;
             }
             
             .button-group {
-                flex-direction: column;
+                flex-wrap: wrap;
             }
             
             button {
-                width: 100%;
-                margin-bottom: 0.5rem;
+                flex: 1 0 40%;
             }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>MD To Any - Markdown转换工具</h1>
+        <h1>MD To Any</h1>
         <p>轻松将Markdown转换为Word、图片等格式</p>
     </header>
     
     <div class="container">
-        <div class="input-section">
-            <label for="markdownInput">输入Markdown内容:</label>
-            <textarea id="markdownInput" placeholder="在这里输入Markdown内容..."></textarea>
-            <div class="button-group">
-                <button id="convertBtn" onclick="convertMarkdown()">
-                    <span id="convertSpinner" class="spinner" style="display: none;"></span>
-                    转换
-                </button>
-                <button onclick="loadSampleContent()">加载示例内容</button>
-                <button onclick="clearContent()">清空</button>
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">输入Markdown内容</div>
             </div>
-            <div id="alertBox" style="display: none;" class="alert"></div>
+            <div class="panel-content">
+                <div class="input-section">
+                    <textarea id="markdownInput" placeholder="在这里输入Markdown内容或点击"加载示例内容"..."></textarea>
+                    <div class="button-group">
+                        <button id="convertBtn" onclick="convertMarkdown()">
+                            <span id="convertSpinner" class="spinner" style="display: none;"></span>
+                            转换
+                        </button>
+                        <button class="secondary" onclick="loadSampleContent()">加载示例内容</button>
+                        <button class="secondary" onclick="clearContent()">清空</button>
+                    </div>
+                    <div id="alertBox" style="display: none;" class="alert"></div>
+                </div>
+            </div>
         </div>
         
         <div id="outputSection" class="output-section" style="display: none;">
-            <div class="output-tabs">
-                <div class="tab active" onclick="switchTab('htmlTab')">HTML预览</div>
-                <div class="tab" onclick="switchTab('imageTab')">图片预览</div>
-            </div>
-            
-            <div id="htmlTab" class="tab-content active">
-                <div id="htmlOutput" class="html-output"></div>
-            </div>
-            
-            <div id="imageTab" class="tab-content">
-                <div class="image-output">
-                    <img id="outputImage" src="" alt="转换后的图片">
+            <div class="panel">
+                <div class="output-tabs">
+                    <div class="tab active" onclick="switchTab('htmlTab')">HTML预览</div>
+                    <div class="tab" onclick="switchTab('imageTab')">图片预览</div>
                 </div>
-            </div>
-            
-            <div class="download-section" style="display: none;" id="downloadSection">
-                <a id="downloadLink" href="" download="output.docx" class="download-link">
-                    <i class="fas fa-download"></i> 下载Word文档
-                </a>
+                
+                <div id="htmlTab" class="tab-content active">
+                    <div id="htmlOutput" class="html-output"></div>
+                </div>
+                
+                <div id="imageTab" class="tab-content">
+                    <div class="image-output">
+                        <img id="outputImage" src="" alt="转换后的图片">
+                    </div>
+                </div>
+                
+                <div class="download-section" style="display: none;" id="downloadSection">
+                    <a id="downloadLink" href="" download="output.docx" class="download-link">
+                        下载Word文档
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -440,7 +563,7 @@ function hello() {
                 document.getElementById('downloadSection').style.display = 'block';
                 
                 // 显示输出区域
-                document.getElementById('outputSection').style.display = 'flex';
+                document.getElementById('outputSection').style.display = 'block';
                 
                 // 显示成功消息
                 showAlert('转换成功！', 'success');
