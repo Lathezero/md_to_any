@@ -126,6 +126,23 @@
             gap: 2rem;
         }
         
+        /* 内容区域 - 两列布局 */
+        .content-area {
+            display: flex;
+            gap: 1.5rem;
+            flex: 1;
+        }
+        
+        .input-panel {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .output-panel {
+            flex: 1;
+            min-width: 0;
+        }
+        
         /* 面板组件 */
         .panel {
             background-color: var(--panel-bg);
@@ -134,6 +151,9 @@
             overflow: hidden;
             transition: box-shadow var(--transition-fast);
             border: 1px solid var(--border-color);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
         
         .panel:hover {
@@ -149,7 +169,7 @@
         }
         
         .panel-title {
-            font-size: 0.9375rem;
+            font-size: 1rem;
             font-weight: 600;
             color: var(--text-color);
             display: flex;
@@ -168,6 +188,10 @@
         
         .panel-content {
             padding: 1.5rem;
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
         }
         
         /* 输入区域 */
@@ -175,21 +199,24 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
+            flex: 1;
         }
         
         textarea {
             width: 100%;
-            height: 360px;
+            height: 400px;
             padding: 1rem;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
-            font-size: 0.875rem;
+            font-size: 0.9375rem;
             line-height: 1.7;
             resize: vertical;
             transition: all var(--transition-fast);
             color: var(--text-color);
             background-color: #fcfcfc;
+            flex: 1;
+            min-height: 200px;
         }
         
         textarea:focus {
@@ -206,8 +233,8 @@
         }
         
         button {
-            padding: 0.625rem 1.25rem;
-            font-size: 0.875rem;
+            padding: 0.7rem 1.5rem;
+            font-size: 0.9375rem;
             font-weight: 500;
             border-radius: var(--radius-md);
             cursor: pointer;
@@ -270,17 +297,7 @@
         .output-section {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
-            transition: opacity var(--transition-normal);
-            opacity: 0;
-            height: 0;
-            overflow: hidden;
-        }
-        
-        .output-section.visible {
-            opacity: 1;
-            height: auto;
-            overflow: visible;
+            flex: 1;
         }
         
         .output-tabs {
@@ -332,7 +349,7 @@
             overflow: auto;
             padding: 1.5rem;
             min-height: 320px;
-            max-height: 600px;
+            height: 100%;
         }
         
         .html-output h1 {
@@ -480,6 +497,24 @@
         }
         
         /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .content-area {
+                flex-direction: column;
+            }
+            
+            .panel {
+                height: auto;
+            }
+            
+            textarea {
+                height: 350px;
+            }
+            
+            .html-output {
+                max-height: 500px;
+            }
+        }
+        
         @media (max-width: 768px) {
             .header-content, .container, .footer-content {
                 padding-left: 1rem;
@@ -517,6 +552,10 @@
             .footer-links {
                 flex-wrap: wrap;
                 justify-content: center;
+            }
+            
+            textarea {
+                height: 300px;
             }
         }
         
@@ -623,60 +662,71 @@
     </header>
     
     <div class="container">
-        <div class="panel">
-            <div class="panel-header">
-                <div class="panel-title">输入Markdown内容</div>
-            </div>
-            <div class="panel-content">
-                <div class="input-section">
-                    <textarea id="markdownInput" placeholder="在这里输入Markdown内容或点击"加载示例内容"按钮..."></textarea>
-                    <div class="button-group">
-                        <button id="convertBtn" class="primary" onclick="convertMarkdown()">
-                            <span id="convertSpinner" class="spinner" style="display: none;"></span>
-                            <span>转换文档</span>
-                        </button>
-                        <button class="secondary" onclick="loadSampleContent()">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M13 7H21M13 12H21M13 17H21M6 7V17M6 7L3 10M6 7L9 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                            </svg>
-                            <span>加载示例</span>
-                        </button>
-                        <button class="secondary" onclick="clearContent()">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6 6L18 18M6 18L18 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                            </svg>
-                            <span>清空内容</span>
-                        </button>
+        <div class="content-area">
+            <!-- 输入区域 -->
+            <div class="input-panel">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">输入Markdown内容</div>
                     </div>
-                    <div id="alertBox" style="display: none;" class="alert"></div>
-                </div>
-            </div>
-        </div>
-        
-        <div id="outputSection" class="output-section">
-            <div class="panel">
-                <div class="output-tabs">
-                    <div class="tab active" onclick="switchTab('htmlTab')">HTML预览</div>
-                    <div class="tab" onclick="switchTab('imageTab')">图片预览</div>
-                </div>
-                
-                <div id="htmlTab" class="tab-content active">
-                    <div id="htmlOutput" class="html-output"></div>
-                </div>
-                
-                <div id="imageTab" class="tab-content">
-                    <div class="image-output">
-                        <img id="outputImage" src="" alt="转换后的图片">
+                    <div class="panel-content">
+                        <div class="input-section">
+                            <textarea id="markdownInput" placeholder="在这里输入Markdown内容或点击"加载示例内容"按钮..."></textarea>
+                            <div class="button-group">
+                                <button id="convertBtn" class="primary" onclick="convertMarkdown()">
+                                    <span id="convertSpinner" class="spinner" style="display: none;"></span>
+                                    <span>转换文档</span>
+                                </button>
+                                <button class="secondary" onclick="loadSampleContent()">
+                                    <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13 7H21M13 12H21M13 17H21M6 7V17M6 7L3 10M6 7L9 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    </svg>
+                                    <span>加载示例</span>
+                                </button>
+                                <button class="secondary" onclick="clearContent()">
+                                    <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M6 6L18 18M6 18L18 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    </svg>
+                                    <span>清空内容</span>
+                                </button>
+                            </div>
+                            <div id="alertBox" style="display: none;" class="alert"></div>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="download-section" style="display: none;" id="downloadSection">
-                    <a id="downloadLink" href="" download="output.docx" class="download-link">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 15V3M12 15L8 11M12 15L16 11M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
-                        <span>下载Word文档</span>
-                    </a>
+            </div>
+            
+            <!-- 输出/预览区域 -->
+            <div class="output-panel">
+                <div id="outputSection" class="output-section">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="output-tabs">
+                                <div class="tab active" onclick="switchTab('htmlTab')">HTML预览</div>
+                                <div class="tab" onclick="switchTab('imageTab')">图片预览</div>
+                            </div>
+                        </div>
+                        <div class="panel-content">
+                            <div id="htmlTab" class="tab-content active">
+                                <div id="htmlOutput" class="html-output"></div>
+                            </div>
+                            
+                            <div id="imageTab" class="tab-content">
+                                <div class="image-output">
+                                    <img id="outputImage" src="" alt="转换后的图片">
+                                </div>
+                            </div>
+                            
+                            <div class="download-section" style="display: none;" id="downloadSection">
+                                <a id="downloadLink" href="" download="output.docx" class="download-link">
+                                    <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 15V3M12 15L8 11M12 15L16 11M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    </svg>
+                                    <span>下载Word文档</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -862,8 +912,10 @@ function hello() {
                 // 显示成功消息
                 showAlert('转换成功！文档已准备就绪', 'success');
                 
-                // 滚动到输出区域
-                document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // 在移动设备上才滚动到输出区域
+                if (window.innerWidth <= 1024) {
+                    document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
                 
             } catch (error) {
                 console.error('转换错误:', error);
