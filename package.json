@@ -1,0 +1,29 @@
+{
+  "name": "md_to_word_and_pic",
+  "version": "1.0.0",
+  "description": "Convert Markdown to image and Word document",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "html-to-docx": "^2.2.0",
+    "marked": "^2.0.0",
+    "puppeteer-core": "^10.4.0"
+  },
+  "bin": "server.js",
+  "pkg": {
+    "scripts": "server.js",
+    "assets": [
+      "public/**/*",
+      "node_modules/**/*"
+    ],
+    "targets": [
+      "node14-win-x64",
+      "node14-macos-x64",
+      "node14-linux-x64"
+    ]
+  }
+}
