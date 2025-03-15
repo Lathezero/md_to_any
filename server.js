@@ -131,39 +131,55 @@ app.post('/convert', async (req, res) => {
                     // MathJax仅在需要时加载
                     function loadMathJax() {
                         return new Promise((resolve, reject) => {
-                            // 检查是否有数学公式
-                            if (document.body.textContent.includes('$')) {
-                                console.log('检测到数学公式，加载MathJax');
-                                const script = document.createElement('script');
-                                script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
-                                script.onload = () => {
-                                    MathJax.typesetPromise().then(() => {
-                                        console.log('MathJax渲染完成');
-                                        resolve(true);
-                                    }).catch((err) => {
-                                        console.error('MathJax渲染错误:', err);
-                                        reject(err);
-                                    });
-                                };
-                                script.onerror = (err) => {
-                                    console.error('MathJax加载失败:', err);
-                                    reject(err);
-                                };
-                                document.head.appendChild(script);
-                            } else {
-                                console.log('未检测到数学公式，跳过MathJax');
-                                resolve(false);
+                            try {
+                                // 检查是否有数学公式
+                                if (document.body.textContent.includes('$')) {
+                                    console.log('检测到数学公式，加载MathJax');
+                                    const script = document.createElement('script');
+                                    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+                                    script.onload = () => {
+                                        if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                                            MathJax.typesetPromise().then(() => {
+                                                console.log('MathJax渲染完成');
+                                                resolve(true);
+                                            }).catch((err) => {
+                                                console.error('MathJax渲染错误:', err);
+                                                resolve(false); // 仍然继续处理，不中断
+                                            });
+                                        } else {
+                                            console.log('MathJax加载成功但typesetPromise不可用');
+                                            resolve(false);
+                                        }
+                                    };
+                                    script.onerror = (err) => {
+                                        console.error('MathJax加载失败:', err);
+                                        resolve(false); // 仍然继续处理，不中断
+                                    };
+                                    document.head.appendChild(script);
+                                } else {
+                                    console.log('未检测到数学公式，跳过MathJax');
+                                    resolve(false);
+                                }
+                            } catch (err) {
+                                console.error('加载MathJax时发生错误:', err);
+                                resolve(false); // 仍然继续处理，不中断
                             }
                         });
                     }
                     
                     // 页面加载完成后通知
                     window.onload = () => {
-                        loadMathJax().then((mathjaxLoaded) => {
-                            window.status = 'rendered';
-                        }).catch(err => {
+                        try {
+                            loadMathJax().then((mathjaxLoaded) => {
+                                window.status = 'rendered';
+                            }).catch(err => {
+                                console.error('MathJax处理失败:', err);
+                                window.status = 'error';
+                            });
+                        } catch (err) {
+                            console.error('页面加载处理失败:', err);
                             window.status = 'error';
-                        });
+                        }
                     };
                 </script>
             </head>
@@ -178,6 +194,16 @@ app.post('/convert', async (req, res) => {
             .catch(err => {
                 console.warn('等待渲染超时，继续处理：', err.message);
             });
+        
+        // 截取整个页面的图片前进行状态检查
+        try {
+            const status = await page.evaluate(() => window.status);
+            if (status === 'error') {
+                console.warn('页面上报渲染错误，但仍继续处理');
+            }
+        } catch (evalError) {
+            console.warn('检查渲染状态失败，继续处理:', evalError.message);
+        }
         
         // 截取整个页面的图片
         const imageBuffer = await page.screenshot({ 

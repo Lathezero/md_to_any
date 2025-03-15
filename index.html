@@ -412,8 +412,16 @@ function hello() {
                 
                 // 检查请求是否成功
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || '转换失败，请重试');
+                    let errorMessage = '转换失败，请重试';
+                    try {
+                        const errorData = await response.json();
+                        if (errorData && errorData.message) {
+                            errorMessage = errorData.message;
+                        }
+                    } catch (jsonError) {
+                        console.error('解析错误响应失败:', jsonError);
+                    }
+                    throw new Error(errorMessage);
                 }
                 
                 const result = await response.json();
