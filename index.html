@@ -4,20 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MD To Any - Markdown转换工具</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Mac风格配色 */
-            --primary-color: #007aff;
-            --primary-dark: #0062cc;
-            --secondary-color: #8e8e93;
-            --bg-color: #f5f5f7;
+            /* 高级现代配色 */
+            --primary-color: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #93c5fd;
+            --bg-color: #f9fafb;
             --panel-bg: #ffffff;
-            --border-color: #d2d2d7;
-            --success-color: #34c759;
-            --danger-color: #ff3b30;
-            --warning-color: #ffcc00;
-            --text-color: #1d1d1f;
-            --text-secondary: #86868b;
+            --border-color: #e5e7eb;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --text-color: #111827;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            --max-width: 1100px;
         }
         
         * {
@@ -27,7 +40,7 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.6;
             color: var(--text-color);
             background-color: var(--bg-color);
@@ -40,322 +53,573 @@
             -moz-osx-font-smoothing: grayscale;
         }
         
+        /* 顶部导航区域 */
         header {
-            background-color: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background-color: var(--panel-bg);
             border-bottom: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 1rem;
-            text-align: center;
+            padding: 1rem 0;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: var(--shadow-sm);
         }
         
-        header h1 {
-            font-weight: 500;
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        header p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-        
-        .container {
-            max-width: 1000px;
+        .header-content {
+            max-width: var(--max-width);
             margin: 0 auto;
-            padding: 1.5rem;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background-color: var(--primary-color);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+        
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+        
+        .logo-text h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+            letter-spacing: -0.01em;
+        }
+        
+        .logo-text p {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        /* 主容器 */
+        .container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
             flex: 1;
             display: flex;
             flex-direction: column;
+            gap: 2rem;
         }
         
+        /* 面板组件 */
         .panel {
             background-color: var(--panel-bg);
-            border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
             overflow: hidden;
-            margin-bottom: 1.5rem;
+            transition: box-shadow var(--transition-fast);
+            border: 1px solid var(--border-color);
+        }
+        
+        .panel:hover {
+            box-shadow: var(--shadow-lg);
         }
         
         .panel-header {
-            padding: 1rem;
+            padding: 1.25rem 1.5rem;
             border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         
         .panel-title {
-            font-size: 1rem;
-            font-weight: 500;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .panel-title::before {
+            content: '';
+            display: block;
+            width: 12px;
+            height: 12px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
         }
         
         .panel-content {
-            padding: 1rem;
+            padding: 1.5rem;
         }
         
+        /* 输入区域 */
         .input-section {
-            margin-bottom: 1rem;
             display: flex;
             flex-direction: column;
-        }
-        
-        .input-section label {
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--text-color);
-            font-size: 0.9rem;
+            gap: 1rem;
         }
         
         textarea {
             width: 100%;
-            height: 200px;
-            padding: 0.75rem;
+            height: 240px;
+            padding: 1rem;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-family: 'SF Mono', Consolas, Monaco, 'Andale Mono', monospace;
-            font-size: 0.9rem;
+            border-radius: var(--radius-md);
+            font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+            font-size: 0.875rem;
+            line-height: 1.7;
             resize: vertical;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: all var(--transition-fast);
+            color: var(--text-color);
+            background-color: #fcfcfc;
         }
         
         textarea:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+            box-shadow: 0 0 0 3px var(--primary-light);
+            background-color: white;
         }
         
         .button-group {
             display: flex;
-            margin: 1rem 0;
-            gap: 0.8rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
         }
         
         button {
-            padding: 0.6rem 1.2rem;
+            padding: 0.625rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            line-height: 1.4;
+        }
+        
+        button.primary {
             background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            box-shadow: var(--shadow-sm);
         }
         
-        button:hover {
+        button.primary:hover {
             background-color: var(--primary-dark);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
         }
         
-        button:active {
-            transform: scale(0.98);
-        }
-        
-        button:disabled {
-            background-color: var(--secondary-color);
-            cursor: not-allowed;
-            opacity: 0.7;
+        button.primary:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-sm);
         }
         
         button.secondary {
-            background-color: transparent;
-            color: var(--primary-color);
-            border: 1px solid var(--primary-color);
+            background-color: white;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
         }
         
         button.secondary:hover {
-            background-color: rgba(0, 122, 255, 0.1);
+            background-color: #f9fafb;
+            border-color: var(--text-tertiary);
+            color: var(--primary-dark);
         }
         
+        button.secondary:active {
+            background-color: #f3f4f6;
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        button .icon {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            opacity: 0.9;
+        }
+        
+        /* 输出区域 */
         .output-section {
             display: flex;
             flex-direction: column;
-            flex: 1;
+            gap: 1.5rem;
+            transition: opacity var(--transition-normal);
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+        }
+        
+        .output-section.visible {
+            opacity: 1;
+            height: auto;
+            overflow: visible;
         }
         
         .output-tabs {
             display: flex;
-            padding: 0.5rem 1rem 0;
-            background-color: #f5f5f7;
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
+            gap: 0.25rem;
+            padding: 0 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background-color: #f9fafb;
         }
         
         .tab {
-            padding: 0.7rem 1.2rem;
-            cursor: pointer;
-            font-size: 0.9rem;
+            padding: 1rem 1.25rem;
+            font-size: 0.875rem;
             font-weight: 500;
             color: var(--text-secondary);
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-            transition: all 0.2s;
-            margin-right: 0.25rem;
+            cursor: pointer;
+            position: relative;
+            user-select: none;
         }
         
         .tab.active {
-            background-color: white;
             color: var(--primary-color);
+            font-weight: 600;
         }
         
-        .tab:hover:not(.active) {
-            background-color: rgba(0, 0, 0, 0.05);
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--primary-color);
+            border-top-left-radius: 3px;
+            border-top-right-radius: 3px;
         }
         
         .tab-content {
             display: none;
-            background-color: white;
-            padding: 1.5rem;
-            border-bottom-left-radius: 10px;
-            border-bottom-right-radius: 10px;
-            flex: 1;
-            overflow: auto;
+            padding: 0;
         }
         
         .tab-content.active {
             display: block;
-            min-height: 300px;
         }
         
         .html-output {
             width: 100%;
             overflow: auto;
+            padding: 1.5rem;
+            min-height: 320px;
+            max-height: 600px;
+        }
+        
+        .html-output h1 {
+            margin-top: 0;
         }
         
         .image-output {
             text-align: center;
-            padding: 1rem;
+            padding: 1.5rem;
         }
         
         #outputImage {
             max-width: 100%;
-            border-radius: 5px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
         }
         
         .download-section {
-            margin: 1.5rem 0;
-            text-align: center;
+            display: flex;
+            justify-content: center;
+            margin: 0.5rem 0 1.5rem;
         }
         
         .download-link {
             display: inline-flex;
             align-items: center;
-            padding: 0.7rem 1.5rem;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
             background-color: var(--success-color);
             color: white;
             text-decoration: none;
-            border-radius: 6px;
+            border-radius: var(--radius-md);
             font-weight: 500;
-            transition: all 0.2s;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            font-size: 0.875rem;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-sm);
         }
         
         .download-link:hover {
-            background-color: #2da446;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+            background-color: #059669;
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
         }
         
         .download-link:active {
-            transform: scale(0.98);
+            transform: translateY(0);
         }
         
+        .download-link .icon {
+            width: 18px;
+            height: 18px;
+        }
+        
+        /* 加载动画 */
         .spinner {
-            display: inline-block;
-            width: 1rem;
-            height: 1rem;
+            width: 16px;
+            height: 16px;
             border: 2px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             border-top-color: white;
-            animation: spin 1s linear infinite;
-            margin-right: 0.5rem;
+            animation: spin 0.8s linear infinite;
         }
         
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
         
+        /* 提示消息 */
         .alert {
-            padding: 0.9rem 1.2rem;
-            margin-bottom: 1rem;
-            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-md);
             display: flex;
-            align-items: center;
-            line-height: 1.4;
+            align-items: flex-start;
+            gap: 0.75rem;
+            line-height: 1.5;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            animation: fadeIn 0.3s ease-out;
+            max-width: 100%;
+            position: relative;
+            overflow: hidden;
         }
         
-        .alert::before {
-            content: '';
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .alert .icon {
             width: 20px;
             height: 20px;
-            margin-right: 10px;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
+            flex-shrink: 0;
+            margin-top: 1px;
         }
         
         .alert-danger {
-            color: #9f2c23;
-            background-color: #ffe5e3;
-        }
-        
-        .alert-danger::before {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='none' d='M0 0h24v24H0z'/%3E%3Cpath d='M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-1-5h2v2h-2v-2zm0-8h2v6h-2V7z' fill='%23ff3b30'/%3E%3C/svg%3E");
+            background-color: #fef2f2;
+            color: #b91c1c;
+            border-left: 4px solid #ef4444;
         }
         
         .alert-success {
-            color: #1f7a37;
-            background-color: #e2f8e8;
-        }
-        
-        .alert-success::before {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='none' d='M0 0h24v24H0z'/%3E%3Cpath d='M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-.997-6l7.07-7.071-1.414-1.414-5.656 5.657-2.829-2.829-1.414 1.414L11.003 16z' fill='%2334c759'/%3E%3C/svg%3E");
+            background-color: #f0fdf4;
+            color: #15803d;
+            border-left: 4px solid #10b981;
         }
         
         .alert-warning {
-            color: #996600;
-            background-color: #fff8e6;
+            background-color: #fffbeb;
+            color: #b45309;
+            border-left: 4px solid #f59e0b;
         }
         
-        .alert-warning::before {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='none' d='M0 0h24v24H0z'/%3E%3Cpath d='M12.866 3l9.526 16.5a1 1 0 0 1-.866 1.5H2.474a1 1 0 0 1-.866-1.5L11.134 3a1 1 0 0 1 1.732 0zM11 16v2h2v-2h-2zm0-7v5h2V9h-2z' fill='%23ffcc00'/%3E%3C/svg%3E");
-        }
-        
+        /* 页脚 */
         footer {
-            background-color: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             border-top: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            text-align: center;
-            padding: 1rem;
-            font-size: 0.85rem;
+            padding: 1.5rem 0;
+            color: var(--text-tertiary);
+            font-size: 0.8125rem;
+            background-color: var(--panel-bg);
         }
-
+        
+        .footer-content {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color var(--transition-fast);
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary-color);
+        }
+        
         /* 响应式设计 */
         @media (max-width: 768px) {
+            .header-content, .container, .footer-content {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
             .container {
+                padding-top: 1.5rem;
+                padding-bottom: 1.5rem;
+                gap: 1.5rem;
+            }
+            
+            .panel-header, .panel-content {
                 padding: 1rem;
             }
             
-            .button-group {
-                flex-wrap: wrap;
+            .logo-text h1 {
+                font-size: 1.125rem;
             }
             
-            button {
-                flex: 1 0 40%;
+            .button-group {
+                flex-direction: column;
             }
+            
+            button, .download-link {
+                width: 100%;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .footer-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+        
+        /* HTML预览中的样式 */
+        .html-output h1, .html-output h2, .html-output h3, 
+        .html-output h4, .html-output h5, .html-output h6 {
+            color: var(--text-color);
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            line-height: 1.3;
+        }
+        
+        .html-output h1 { font-size: 2em; margin-top: 0; }
+        .html-output h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        .html-output h3 { font-size: 1.25em; }
+        
+        .html-output p {
+            margin: 0.8em 0;
+        }
+        
+        .html-output ul, .html-output ol {
+            margin: 0.8em 0;
+            padding-left: 2em;
+        }
+        
+        .html-output li {
+            margin: 0.3em 0;
+        }
+        
+        .html-output blockquote {
+            margin: 1em 0;
+            padding: 0.5em 1em;
+            border-left: 0.25em solid #dfe2e5;
+            color: #6a737d;
+            background-color: #f6f8fa;
+        }
+        
+        .html-output pre {
+            background-color: #f6f8fa;
+            border-radius: var(--radius-sm);
+            padding: 1em;
+            overflow: auto;
+        }
+        
+        .html-output code {
+            background-color: rgba(175, 184, 193, 0.2);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+            font-size: 0.85em;
+        }
+        
+        .html-output pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        .html-output table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        
+        .html-output th, .html-output td {
+            border: 1px solid #dfe2e5;
+            padding: 0.5em 1em;
+            text-align: left;
+        }
+        
+        .html-output th {
+            background-color: #f6f8fa;
+            font-weight: 600;
+        }
+        
+        .html-output img {
+            max-width: 100%;
+            border-radius: var(--radius-sm);
+        }
+        
+        .html-output a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .html-output a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>MD To Any</h1>
-        <p>轻松将Markdown转换为Word、图片等格式</p>
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">M</div>
+                <div class="logo-text">
+                    <h1>MD To Any</h1>
+                    <p>Markdown转换工具</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <!-- 可以在这里添加其他操作按钮，如设置、帮助等 -->
+            </div>
+        </div>
     </header>
     
     <div class="container">
@@ -365,21 +629,31 @@
             </div>
             <div class="panel-content">
                 <div class="input-section">
-                    <textarea id="markdownInput" placeholder="在这里输入Markdown内容或点击"加载示例内容"..."></textarea>
+                    <textarea id="markdownInput" placeholder="在这里输入Markdown内容或点击"加载示例内容"按钮..."></textarea>
                     <div class="button-group">
-                        <button id="convertBtn" onclick="convertMarkdown()">
+                        <button id="convertBtn" class="primary" onclick="convertMarkdown()">
                             <span id="convertSpinner" class="spinner" style="display: none;"></span>
-                            转换
+                            <span>转换文档</span>
                         </button>
-                        <button class="secondary" onclick="loadSampleContent()">加载示例内容</button>
-                        <button class="secondary" onclick="clearContent()">清空</button>
+                        <button class="secondary" onclick="loadSampleContent()">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M13 7H21M13 12H21M13 17H21M6 7V17M6 7L3 10M6 7L9 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                            <span>加载示例</span>
+                        </button>
+                        <button class="secondary" onclick="clearContent()">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 6L18 18M6 18L18 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                            <span>清空内容</span>
+                        </button>
                     </div>
                     <div id="alertBox" style="display: none;" class="alert"></div>
                 </div>
             </div>
         </div>
         
-        <div id="outputSection" class="output-section" style="display: none;">
+        <div id="outputSection" class="output-section">
             <div class="panel">
                 <div class="output-tabs">
                     <div class="tab active" onclick="switchTab('htmlTab')">HTML预览</div>
@@ -398,7 +672,10 @@
                 
                 <div class="download-section" style="display: none;" id="downloadSection">
                     <a id="downloadLink" href="" download="output.docx" class="download-link">
-                        下载Word文档
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 15V3M12 15L8 11M12 15L16 11M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        <span>下载Word文档</span>
                     </a>
                 </div>
             </div>
@@ -406,7 +683,14 @@
     </div>
     
     <footer>
-        &copy; 2023 MD To Any - Markdown转换工具
+        <div class="footer-content">
+            <div>&copy; 2023 MD To Any - Markdown转换工具</div>
+            <div class="footer-links">
+                <a href="#about">关于我们</a>
+                <a href="#privacy">隐私政策</a>
+                <a href="#terms">使用条款</a>
+            </div>
+        </div>
     </footer>
     
     <script>
@@ -473,7 +757,7 @@ function hello() {
         // 清空内容
         function clearContent() {
             document.getElementById('markdownInput').value = '';
-            document.getElementById('outputSection').style.display = 'none';
+            document.getElementById('outputSection').classList.remove('visible');
             document.getElementById('alertBox').style.display = 'none';
         }
         
@@ -497,9 +781,19 @@ function hello() {
         // 显示提示信息
         function showAlert(message, type = 'danger') {
             const alertBox = document.getElementById('alertBox');
-            alertBox.textContent = message;
+            
+            let iconSvg = '';
+            if (type === 'success') {
+                iconSvg = '<svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 13L9 17L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+            } else if (type === 'warning') {
+                iconSvg = '<svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 9V12M12 15H12.01M5.07183 19H18.9282C20.4678 19 21.4301 17.3333 20.6603 16L13.7321 4C12.9623 2.66667 11.0378 2.66667 10.268 4L3.33978 16C2.56998 17.3333 3.53223 19 5.07183 19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+            } else {
+                iconSvg = '<svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 8V12M12 16H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+            }
+            
+            alertBox.innerHTML = iconSvg + '<span>' + message + '</span>';
             alertBox.className = `alert alert-${type}`;
-            alertBox.style.display = 'block';
+            alertBox.style.display = 'flex';
             
             // 5秒后自动隐藏
             setTimeout(() => {
@@ -560,16 +854,16 @@ function hello() {
                 // 显示下载Word文档的链接
                 const downloadLink = document.getElementById('downloadLink');
                 downloadLink.href = result.wordUrl;
-                document.getElementById('downloadSection').style.display = 'block';
+                document.getElementById('downloadSection').style.display = 'flex';
                 
                 // 显示输出区域
-                document.getElementById('outputSection').style.display = 'block';
+                document.getElementById('outputSection').classList.add('visible');
                 
                 // 显示成功消息
-                showAlert('转换成功！', 'success');
+                showAlert('转换成功！文档已准备就绪', 'success');
                 
                 // 滚动到输出区域
-                document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
                 
             } catch (error) {
                 console.error('转换错误:', error);
