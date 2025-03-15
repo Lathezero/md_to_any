@@ -1,3 +1,8 @@
+// 为html-to-docx库添加兼容，修复console.warning不存在的问题
+if (!console.warning) {
+    console.warning = console.warn;
+}
+
 const express = require('express');
 const puppeteer = require('puppeteer-core');
 const bodyParser = require('body-parser');
