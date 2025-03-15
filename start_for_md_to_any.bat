@@ -1,7 +1,10 @@
 @echo off
-title MD To Any - Markdown转换工具
-echo 正在启动MD To Any服务...
-echo 请稍候，浏览器将自动打开...
+:: 设置代码页为UTF-8
+chcp 65001 > nul
+
+title MD To Any - Markdown Conversion Tool
+echo [Start] Starting MD To Any service...
+echo [Info] Please wait, browser will open automatically...
 
 :: 启动服务
 start /min node server.js
@@ -12,8 +15,8 @@ timeout /t 3 /nobreak > nul
 :: 启动浏览器
 start http://localhost:3000
 
-echo 服务已启动！
-echo 如需关闭服务，请关闭此窗口。
+echo [Success] Service started successfully!
+echo [Info] To close the service, close this window.
 
 :: 保持窗口打开
 pause > nul 
